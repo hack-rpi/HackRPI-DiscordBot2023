@@ -6,6 +6,9 @@ Welcome to the official GitHub repository for HackRPI Discord Bots! Over the pas
 
 We're thrilled to see the HackRPI community grow each year and are always on the lookout for fresh ideas and perspectives. Whether you're a seasoned developer, a design enthusiast, or someone who's just passionate about hackathons, there's a place for you here!
 
+## 🤖 Our Purpose
+The HackRPI Organizing Team, founded in 2014, has run RPI’s annual hackathon for the past 10 years. Running a large-scale hackathon such as this comes with many responsibilities, one of which is to create hackathon tools and manage the event discord. While the Technology team within the club has done a great job at this, scaling up for the 10th annual hackathon requires a large amount of work. This project aims to help the HackRPI Technology team by developing a discord bot to manage our event server and hackathon tools to be used throughout the event.
+
 ## 🖐 How Can You Contribute?
 
 1. **Bug Fixes:** Spot an issue? Feel free to submit a pull request.
