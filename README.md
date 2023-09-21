@@ -48,3 +48,13 @@ The HackRPI Organizing Team, founded in 2014, has run RPI’s annual hackathon f
 6. **Push and Create a Pull Request:** 
     - Push your branch to GitHub using GitHub Desktop.
     - Then, visit the repository on GitHub's website and create a pull request. Write a description of the changes in the comment, and paste any relevant images showcasing updates. Our team will review, provide feedback, or merge your changes.
+
+## ⏯️ How to Set Up Environment File
+1. Create a .env file in your directory
+2. Ask Project Lead for Discord token
+3. In the file type 'DISCORD_BOT_TOKEN = replace_with_token'
+4. Open bash and 'pip install python-decouple'
+5. To use the token
+    - In a python file import config by typing "from decouple import config"
+    - Grab the token from the .env with "token = config("DISCORD_BOT_TOKEN")"
+6. ***NEVER*** share the token and other details in the .env file!
