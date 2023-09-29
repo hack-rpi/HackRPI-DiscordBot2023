@@ -4,6 +4,7 @@ from discord.ext import commands
 from captcha.image import ImageCaptcha
 import random
 import io
+import os
 
 token = config("DISCORD_BOT_TOKEN")
 intents = discord.Intents.all()
@@ -26,15 +27,18 @@ async def on_member_join(member):
 async def send_captcha(member):
     data = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=5))
     image = captcha_generator.generate(data)
-    image_data = io.BytesIO()
-    image.save(image_data, format="PNG")
-    image_data.seek(0)
+
+    # Save the image to a temporary file
+    temp_file = f"captcha_{member.id}.png"
+    image.save(temp_file, format="PNG")
 
     captchas[member.id] = data
 
     dm_channel = await member.create_dm()
 
-    file = discord.File(fp=image_data, filename="captcha.png")
+    # Create a discord.File object from the saved file
+    file = discord.File(fp=temp_file, filename="captcha.png")
+
     embed = discord.Embed(title="Verification", description="Solve the CAPTCHA to get verified!")
     message = await dm_channel.send(embed=embed, file=file, components=[[
         discord.ui.Button(style=discord.ButtonStyle.green, label="I'm Human", custom_id="verify_me")
@@ -45,6 +49,9 @@ async def send_captcha(member):
         await interaction.response.send_message("Please type the CAPTCHA content to verify!", ephemeral=True)
     except TimeoutError:
         await message.edit(content="CAPTCHA verification time expired. Please request a new CAPTCHA if you wish to verify.", components=[])
+
+    # Remove the temporary file
+    os.remove(temp_file)
 
 
 @bot.event
