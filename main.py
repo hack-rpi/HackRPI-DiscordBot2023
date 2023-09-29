@@ -3,13 +3,26 @@ import discord
 from discord.ext import commands
 
 
-async def check_profanity(sentence):
-    word_list = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape"]
-    for word in word_list:
-        if(sentence == word):
-        # If a word from the list is found, send a response
-            return word
+def check_profanity(sentence):
+    bad_words = set()
 
+    # Specify the file path
+    file_path = "profanity-list.txt"  # Replace with the path to your file
+    # Open the file and append its contents to the set
+    with open(file_path, "r") as file:
+        for line in file:
+            # Assuming each line in the file contains a single item to add to the set
+            item = line.strip()  # Remove leading/trailing whitespace
+            bad_words.add(item)
+    words = sentence.split()
+    sentence_set = set(words)
+    # word_list = ["apple", "banana", "cherry", "date", "elderberry", "fig", "grape"]
+
+    # for word in word_list:
+    #     if(sentence == word):
+    #     # If a word from the list is found, send a response
+    #         return word    
+    return sentence_set.intersection(bad_words)
 
 if __name__ =='__main__':
     # Define your intents
@@ -31,26 +44,20 @@ if __name__ =='__main__':
 
     @bot.event
     async def on_message(message):
-        word_list = ["apple", "banana", "cherry"]
 
         # Convert the message content to lowercase for case-insensitive matching
         content = message.content.lower().strip()
 
         # Check if any word in the list is in the message content
-        profanity = ""
         if message.author == bot.user:
             return
-        # for word in word_list:
-        #     # await message.channel.send(word)
-        #     if(str(content) == word):
-        #     # If a word from the list is found, send a response
-        #         profanity = word
-
+        if content.startswith("!"):
+            return
         profanity = check_profanity(content)
-        if(profanity != "") : 
-            await message.channel.send("Word isnt allowed, "+ profanity)
-        else:
-            await message.channel.send("Clean message" + profanity)
-
- 
+        print(profanity)    
+        if(len(profanity) != 0 ) : 
+        #     await message.channel.send("Clean message")
+        # else:
+            await message.channel.send(f"Profanity isn't allowed.")
+    
     bot.run(token)
