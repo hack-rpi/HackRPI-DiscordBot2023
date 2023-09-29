@@ -32,13 +32,18 @@ async def on_message(message):
     if author == bot.user:
         return
 
+    #Instructions
+    if content.startswith("!mentorhelp"):
+        await message.channel.send('Hi! Please keep the assistance requests in the following format:\n !mentors [Languages used] [Type of problem (debugging, bug, etc)] [Short Description]')
+
     #If help message
-    if content[0] == '!':
+    elif content.startswith('!mentors '):
         #Starts at index 1 because index 0 is '!' 
         # which we need for the bot to recognize it as a help message
-        reason = content[1:]   
+        reason = content[9:]   
 
         #Put into queue
+
         put_into_queue(queue, author, reason)
 
         await message.channel.send('Current queue: ')
