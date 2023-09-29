@@ -5,6 +5,7 @@ from captcha.image import ImageCaptcha
 import random
 import io
 import os
+from PIL import Image
 
 token = config("DISCORD_BOT_TOKEN")
 intents = discord.Intents.all()
@@ -26,15 +27,19 @@ async def on_member_join(member):
 
 async def send_captcha(member):
     data = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=5))
-    image = captcha_generator.generate(data)
+    captcha_bytes = captcha_generator.generate(data)
 
-    # Save the image to a temporary file
+    # Save the bytes to a temporary file
     temp_file = f"captcha_{member.id}.png"
-    image.save(temp_file, format="PNG")
+    with open(temp_file, "wb") as f:
+        f.write(captcha_bytes)
 
     captchas[member.id] = data
 
     dm_channel = await member.create_dm()
+
+    # Open the saved image using PIL
+    image = Image.open(temp_file)
 
     # Create a discord.File object from the saved file
     file = discord.File(fp=temp_file, filename="captcha.png")
