@@ -22,20 +22,37 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Define a simple command
 @bot.command()
-async def team(ctx, name, member1: discord.Member, member2: discord.Member, member3: discord.Member):
-    await ctx.send('Team Created with name ' + name)
-    role = await ctx.guild.create_role(name=name)
+async def team(ctx, *members: discord.Member):
+    if len(members) < 3:
 
-#assign roles to the author and users
-    user = ctx.author
+    #assign roles to the author and users
+        user = ctx.author
+    #get name from author
+        try:
+            await user.send("Hey buddddd... could you send me ur team name pweaseeee.")
 
-    role = discord.utils.get(ctx.guild.roles, name=name)
+            def check(message):
+                return message.author == ctx.author and isinstance(message.channel, discord.DMChannel)
+            
+            response = await bot.wait_for('message', check=check, timeout=60.0)
+            name = response.content
+        except:
+            await user.send("You're too slowwwwww.")
 
+            
 
-    await user.add_roles(role)
-    await member1.add_roles(role)
-    await member2.add_roles(role)
-    await member3.add_roles(role)
+    #make the role
+        role = await ctx.guild.create_role(name=name)
+        role = discord.utils.get(ctx.guild.roles, name=name)
+        await ctx.send('Team Created with name ' + name)
+
+    #add the author
+        await user.add_roles(role)
+    #add the members
+        for member in members:
+            await member.add_roles(role)
+    else:
+        await ctx.send(f"Sorry friend, you can only have 4 members or fewer on a team :(")
 
 
 # Event handler for when the bot is ready
