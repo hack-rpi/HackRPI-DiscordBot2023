@@ -58,6 +58,13 @@ if __name__ =='__main__':
         if(len(profanity) != 0 ) : 
         #     await message.channel.send("Clean message")
         # else:
-            await message.channel.send(f"Profanity isn't allowed.")
+            curses = ""
+            for badWord in profanity:
+                curses += badWord + ", "
+            user = message.author
+            dm_channel = await user.create_dm()
+            await dm_channel.send(f"Words like " + curses+" aren't allowed.")
+
+            # await message.channel.send(f"Profanity isn't allowed.")
     
     bot.run(token)
