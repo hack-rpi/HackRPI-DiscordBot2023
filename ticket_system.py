@@ -4,6 +4,7 @@ from ticket import create_ticket as create
 from discord import client
 from discord.ext import commands 
 from discord.ext.commands import has_permissions, MissingPermissions
+from auth import authorized
 import discord
 
 #Connection
@@ -54,6 +55,10 @@ async def on_message(message):
     if author == bot.user:
         return
 
+    #if empty msg 
+    if content == "":
+        return
+
     #Instructions
     if content.startswith("!mentorhelp"):
         await print_msg('Hi! Please keep the assistance requests in the following format:\n' + 
@@ -76,7 +81,7 @@ async def on_message(message):
          
     #If resolve message
     elif content[0] == '?':
-        
+
         #Team to remove from queue
         name = content[1:]
         ticket = find_ticket(queue, name)
@@ -84,6 +89,11 @@ async def on_message(message):
         if ticket is None:
             await print_msg("Unknown team", channel)
             return 
+
+        #ONLY MENTORS CAN DO THIS
+        if not authorized(author):
+            await print_msg("Not authorized", channel)
+            return
 
         resolve(queue, name)
         await print_msg('Removed ' + name, channel)
@@ -96,6 +106,10 @@ async def on_message(message):
 
     #print queue
     elif content.startswith('!q'):
+
+        if not authorized(author):
+            await print_msg("Not authorized", channel)
+            return
         await print_queue(queue, channel)
 
     #Unknown command
