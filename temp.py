@@ -3,34 +3,43 @@ token = config("DISCORD_BOT_TOKEN")
 import discord
 from discord.ext import commands
 
-intents = discord.Intents.default()
-intents.guilds = True
-intents.channels = True
+# Create a bot instance
+bot = commands.Bot(command_prefix='!')
 
-bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user.name}')
+    print(f'{bot.user} has logged in!')
+
 
 @bot.command()
-async def create_team_channel(ctx, team_name):
-    # Check if the command is run by an administrator or someone with appropriate permissions.
-    if ctx.author.guild_permissions.administrator:
-        # Create a text channel in the server's default category.
-        category = None
-        for cat in ctx.guild.categories:
-            if cat.name == 'Default Category Name':  # Replace 'Default Category Name' with the actual name of your default category.
-                category = cat
-                break
+async def create_teams(ctx, num_players: int):
+    # Get the server
+    server = ctx.guild
 
-        if category is not None:
-            await category.create_text_channel(team_name)
-            await ctx.send('Channel {} created successfully in the default category!'.format(team_name))
-        else:
-            await ctx.send("Default category not found. You may need to specify the correct category name.")
+    # Get the list of members
+    members = server.members
 
-    else:
-        await ctx.send('You do not have permission to create channels.')
+    # Calculate the number of teams
+    num_teams = len(members) // num_players
 
-bot.run("YOUR_TOKEN_HERE")
+    # Create teams
+    for i in range(num_teams):
+        # Create a text channel
+        text_channel = await server.create_text_channel(f'team-{i + 1}')
+
+        # Create a voice channel
+        voice_channel = await server.create_voice_channel(f'team-{i + 1}')
+
+        # Move members to the team
+        for j in range(num_players):
+            member = members.pop()
+            await member.move_to(voice_channel)
+
+        await text_channel.send(f'Team-{i + 1} has been created, and members have been assigned.')
+
+    await ctx.send(f'Successfully created {num_teams} teams!')
+
+
+# Run the bot
+bot.run(token)
