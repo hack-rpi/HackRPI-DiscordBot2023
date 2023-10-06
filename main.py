@@ -46,6 +46,15 @@ if __name__ =='__main__':
     @bot.event
     async def on_message(message):
 
+
+        # Define a list of channel IDs where you want the function to work
+        allowed_channel_ids = [1157414659587063898, 1154875483553529981]  # Replace with your desired channel IDs
+
+        # Check if the message is sent in one of the allowed channels
+        if message.channel.id not in allowed_channel_ids:
+            print(message.channel.id)
+            return  # Exit the function if it's not in an allowed channel
+        print("after")
         # Convert the message content to lowercase for case-insensitive matching
         content = message.content.lower().strip()
 
@@ -66,9 +75,7 @@ if __name__ =='__main__':
             dm_channel = await user.create_dm()
             await dm_channel.send(f"Words like " + curses.rstrip()+" aren't allowed.")
             # await message.channel.send(f"Profanity isn't allowed.")
-            timeout_duration = timedelta(minutes=1)
-            await user.timeout(timeout_duration, reason="Violated server rules")
 
-            # To remove the timeout (unmute)
-            # await user.timeout(None)
     bot.run(token)
+
+
