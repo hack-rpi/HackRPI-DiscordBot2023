@@ -39,18 +39,31 @@ async def team(ctx, *members: discord.Member):
         except:
             await user.send("You're too slowwwwww.")
 
-            
-
-    #make the role
+        #make the role
         role = await ctx.guild.create_role(name=name)
         role = discord.utils.get(ctx.guild.roles, name=name)
         await ctx.send('Team Created with name ' + name)
 
-    #add the author
+        #add the author
         await user.add_roles(role)
-    #add the members
+        
+        #request to add the member
         for member in members:
-            await member.add_roles(role)
+            try:
+                #send the message to users
+                request = await member.send("Would you like to join team")
+                await request.add_reaction("✅")
+                await request.add_reaction("❌")
+
+
+                reaction, _ = await bot.wait_for("reaction_add", check=check, timeout=100.0)
+                if str(reaction.emoji) == "✅":
+                    await member.add_roles(role)
+                    await member.send("Joined Team!")
+                else:
+                    await member.send("Team Request Denied")
+            except:
+                await member.send("You're too slowwwwww.")
     else:
         await ctx.send(f"Sorry friend, you can only have 4 members or fewer on a team :(")
 
