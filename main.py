@@ -1,6 +1,7 @@
 from decouple import config
 import discord
 from discord.ext import commands
+from datetime import timedelta
 
 
 def check_profanity(sentence):
@@ -63,8 +64,11 @@ if __name__ =='__main__':
                 curses += badWord + ", "
             user = message.author
             dm_channel = await user.create_dm()
-            await dm_channel.send(f"Words like " + curses+" aren't allowed.")
-
+            await dm_channel.send(f"Words like " + curses.rstrip()+" aren't allowed.")
             # await message.channel.send(f"Profanity isn't allowed.")
-    
+            timeout_duration = timedelta(minutes=1)
+            await user.timeout(timeout_duration, reason="Violated server rules")
+
+            # To remove the timeout (unmute)
+            # await user.timeout(None)
     bot.run(token)
