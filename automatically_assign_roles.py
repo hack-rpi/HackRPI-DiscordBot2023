@@ -49,32 +49,24 @@ async def team(ctx, *members: discord.Member):
         
         #request to add the member
         for member in members:
+
+            request_message = await member.send(f"{member.mention}, please confirm if you want to join team " + name + ". Respond with 'confirm' or 'deny'.")
+
+            def check(message):
+                return (
+                message.author == member
+                and message.content.lower().strip() in ["confirm", "deny", "'confirm'" "'deny'"]
+            )
+
             try:
-                #send the message to users
-                request = await member.send("Would you like to join team " + name)
-                await request.add_reaction("✅")
-                await request.add_reaction("❌")
-                print("message sent")
-
-                def check(reaction, reactor):
-                    return (
-                        reactor == member
-                        and str(reaction.emoji) in ["✅", "❌"]
-                        and reaction.message.id == request.id
-                    )
-
-                print("checking reaction")
-                reaction, _ = await bot.wait_for("reaction_add", check=check, timeout=100.0)
-                print("reaction checked")
-                print(reaction.emoji())
-                if str(reaction.emoji) == "✅":
-                    await member.add_roles(role)
-                    await member.send("Joined Team!")
-                    await ctx.send(member.display_name() + ' has joined team ' + name)
+                response = await bot.wait_for("message", check=check, timeout=300.0)
+                if response.content.lower().strip() == "confirm" or response.content.lower() == "'confirm'":
+                    await ctx.send(f"{member.mention} has joined team " + name)
+                    member.add_roles(role)
                 else:
-                    await member.send("Team Request Denied")
+                    await ctx.send(f"{member.mention} has denied the request.")
             except:
-                await member.send("You're too slowwwwww.")
+                await ctx.send(f"{member.mention} didn't respond in time. Request expired.")
     else:
         await ctx.send(f"Sorry friend, you can only have 4 members or fewer on a team :(")
 
