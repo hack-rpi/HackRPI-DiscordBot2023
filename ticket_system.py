@@ -38,11 +38,10 @@ async def print_queue(queue, channel):
             return_msg = str(team.name) + ": " + str(team.reason)
             await print_msg(return_msg, channel)
 
-"""
-user = message.author
-dm_channel = await user.create_dm()
-await dm_channel.send(msg)
-"""
+@bot.command()
+async def send_ephemeral(ctx, *, message_content):
+    # Send an ephemeral message
+    await ctx.send(message_content, allowed_mentions=discord.AllowedMentions.none())
 
 #Print msg
 @bot.command()
@@ -55,7 +54,27 @@ async def dm(msg, author):
     dm_channel = await author.create_dm()
     await dm_channel.send(msg)
 
+@bot.command()
+async def mentorhelp(ctx):
+    # Define the behavior of the mentorhelp command here
+    #await send_ephemeral(ctx, message_content="This is the mentorhelp command!")
+    await ctx.send("This is the mentoheadsf", ephemeral=False)
+    #await ctx.send("This is the mentorhelp command!")
 
+@bot.command()
+async def q(ctx):
+    # Define the behavior of the mentorhelp command here
+    #await send_ephemeral(ctx, message_content="This is the mentorhelp command!")
+    await ctx.send("This is the printqueue", ephemeral=False)
+    #await ctx.send("This is the mentorhelp command!")
+
+@bot.command(name="asdf")
+async def asdf(ctx):
+    # Define the behavior of the mentorhelp command here
+    #await send_ephemeral(ctx, message_content="This is the mentorhelp command!")
+    await ctx.send("This is the asdf", ephemeral=False)
+    #await ctx.send("This is the mentorhelp command!")
+bot.add_command(asdf)
 #Bot receives help message
 @bot.event
 async def on_message(message):
@@ -80,6 +99,9 @@ async def on_message(message):
                 WARNING: If you do not follow this format, we will not get to you immediately"""
 
         await dm(msg, author)
+        #ctx = await bot.get_context(message)
+        #await bot.invoke(ctx)
+        #await send_ephemeral("Sfsdfsdfasdf")
 
         """
         await print_msg('Hi! Please keep the assistance requests in the following format:\n' + 
@@ -201,5 +223,6 @@ def resolve(list, team_name):
     #Find ticket
     ticket = find_ticket(list, team_name)
     list.remove(ticket)
+
 
 bot.run(token)
