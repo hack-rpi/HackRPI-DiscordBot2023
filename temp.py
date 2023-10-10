@@ -43,6 +43,14 @@ async def create_teams(ctx, num_players: int):
         print('Sorry you have not right to create channels.')
     await ctx.send(f'Successfully created {num_teams} teams!')
 
+async def read_message(message):
+    if message.author == bot.user:
+        return
+
+    words = "Team created with team name"
+
+    if words in message.content:
+        await message.channel.send("Team name received.")
 
 # Run the bot
 bot.run(token)
