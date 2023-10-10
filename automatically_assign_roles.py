@@ -34,7 +34,7 @@ async def team(ctx, *members: discord.Member):
             def check(message):
                 return message.author == ctx.author and isinstance(message.channel, discord.DMChannel)
             
-            response = await bot.wait_for('message', check=check, timeout=60.0)
+            response = await bot.wait_for('message', check=check, timeout=300.0)
             name = response.content
         except:
             await user.send("You're too slowwwwww.")
@@ -51,15 +51,26 @@ async def team(ctx, *members: discord.Member):
         for member in members:
             try:
                 #send the message to users
-                request = await member.send("Would you like to join team")
+                request = await member.send("Would you like to join team " + name)
                 await request.add_reaction("✅")
                 await request.add_reaction("❌")
+                print("message sent")
 
+                def check(reaction, reactor):
+                    return (
+                        reactor == member
+                        and str(reaction.emoji) in ["✅", "❌"]
+                        and reaction.message.id == request.id
+                    )
 
+                print("checking reaction")
                 reaction, _ = await bot.wait_for("reaction_add", check=check, timeout=100.0)
+                print("reaction checked")
+                print(reaction.emoji())
                 if str(reaction.emoji) == "✅":
                     await member.add_roles(role)
                     await member.send("Joined Team!")
+                    await ctx.send(member.display_name() + ' has joined team ' + name)
                 else:
                     await member.send("Team Request Denied")
             except:
