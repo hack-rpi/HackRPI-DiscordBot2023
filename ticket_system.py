@@ -38,10 +38,20 @@ async def print_queue(queue, channel):
             return_msg = str(team.name) + ": " + str(team.reason)
             await print_msg(return_msg, channel)
 
+#Updates queue in the mentoring-queue channel
 @bot.command()
-async def send_ephemeral(ctx, *, message_content):
-    # Send an ephemeral message
-    await ctx.send(message_content, allowed_mentions=discord.AllowedMentions.none())
+async def update_queue_in_channel(queue, channel):
+
+    msg = ""
+    if len(queue) == 0:
+        msg = "Empty queue"
+    else:
+        msg += "Current queue: \n"
+        for team in queue:
+            msg += str(team.name) + ": " + str(team.reason)
+
+    message_to_change = await channel.fetch_message(1162486682050887751)
+    await message_to_change.edit(content=msg)
 
 #Print msg
 @bot.command()
@@ -54,35 +64,15 @@ async def dm(msg, author):
     dm_channel = await author.create_dm()
     await dm_channel.send(msg)
 
-@bot.command()
-async def mentorhelp(ctx):
-    # Define the behavior of the mentorhelp command here
-    #await send_ephemeral(ctx, message_content="This is the mentorhelp command!")
-    await ctx.send("This is the mentoheadsf", ephemeral=False)
-    #await ctx.send("This is the mentorhelp command!")
 
-@bot.command()
-async def q(ctx):
-    # Define the behavior of the mentorhelp command here
-    #await send_ephemeral(ctx, message_content="This is the mentorhelp command!")
-    await ctx.send("This is the printqueue", ephemeral=False)
-    #await ctx.send("This is the mentorhelp command!")
-
-@bot.command(name="asdf")
-async def asdf(ctx):
-    # Define the behavior of the mentorhelp command here
-    #await send_ephemeral(ctx, message_content="This is the mentorhelp command!")
-    await ctx.send("This is the asdf", ephemeral=False)
-    #await ctx.send("This is the mentorhelp command!")
-bot.add_command(asdf)
 #Bot receives help message
 @bot.event
 async def on_message(message):
 
     author = message.author
     content = message.content
-    channel = message.channel
-   
+    channel = bot.get_channel(1157414401603805284)
+
     #Make sure the message isn't from us
     if author == bot.user:
         return
@@ -99,9 +89,6 @@ async def on_message(message):
                 WARNING: If you do not follow this format, we will not get to you immediately"""
 
         await dm(msg, author)
-        #ctx = await bot.get_context(message)
-        #await bot.invoke(ctx)
-        #await send_ephemeral("Sfsdfsdfasdf")
 
         """
         await print_msg('Hi! Please keep the assistance requests in the following format:\n' + 
@@ -128,6 +115,7 @@ async def on_message(message):
         msg = "Currently " + str(ppl_ahead_of_me) + " people ahead"
 
         await dm(msg, author)
+        await update_queue_in_channel(queue, channel)
         #await print_msg("Currently " + str(ppl_ahead_of_me) + " people ahead", channel)
          
     #If resolve message
@@ -159,42 +147,29 @@ async def on_message(message):
         resolve(queue, name)
         # await print_msg('Removed ' + name, channel)
         await dm('Removed ' + name, author)
-
-        """
-        if len(queue) == 0:
-            await print_msg('Modified queue: ', channel)
-            await print_msg("Empty queue", channel)
-        else:
-            await print_queue(queue, channel)
-        """
-        if len(queue) == 0:
-            await dm('Modified queue: ', author)
-            await dm("Empty queue", author)
-        else:
-            await dm(queue, author)
+        await update_queue_in_channel(queue, channel)
 
     #print queue
     elif content.startswith('!q'):
 
-        """
-        if not authorized(author):
-            await print_msg("Not authorized", channel)
-            return
-        await print_queue(queue, channel)
-        """
         if not authorized(author):
             await dm("Not authorized", author)
             return
-        #await print_queue(queue, channel)
 
+        msg = ""
         if len(queue) == 0:
-            await dm("Empty queue", author)
+            msg = "Empty queue"
         else:
-            await dm('Current queue: ', author)
+            msg += "Current queue: \n"
             for team in queue:
-                return_msg = str(team.name) + ": " + str(team.reason)
-                await dm(return_msg, author)
+                msg += str(team.name) + ": " + str(team.reason)
 
+        #channel = bot.get_channel(1161413687656062986)
+        channel = bot.get_channel(1157414401603805284)
+        #channel = discord.utils.get(guild.text_channels, name="Name of channel")
+        message_to_change = await channel.fetch_message(1162486682050887751)
+        await message_to_change.edit(content=msg)
+                
     #Unknown command
     elif content.startswith('!') or content.startswith('?'):
         #await print_msg('Command not found. Type !mentorhelp for commands', channel)
