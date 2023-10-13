@@ -3,6 +3,16 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 from decouple import config
+
+
+def alreadyOnTeam(member):
+    team_color = 0x1bdf65 
+    has_target_color_role = False
+    for role in member.roles:
+        if role.color.value == team_color:
+            has_target_color_role = True
+            break
+    return has_target_color_role
     
 
 
@@ -39,36 +49,44 @@ async def team(ctx, *members: discord.Member):
         except:
             await user.send("You're too slowwwwww.")
 
-        #make the role
-        role = await ctx.guild.create_role(name=name)
-        role = discord.utils.get(ctx.guild.roles, name=name)
-        await ctx.send('Team Created with name ' + name)
 
         #add the author
-        await user.add_roles(role)
-        
-        #request to add the member
-        for member in members:
+        if(alreadyOnTeam(user) == True):
+            await ctx.send('Sorry, you are already on a team.')
+        else:
+            #make the role
+            role = await ctx.guild.create_role(name=name, color=0x1bdf65)
+            role = discord.utils.get(ctx.guild.roles, name=name)
+            await ctx.send('Team Created with name ' + name)
 
-            request_message = await member.send(f"{member.mention}, please confirm if you want to join team " + name + ". Respond with 'confirm' or 'deny'.")
-
-            def check(message):
-                return (
-                message.author == member
-                and message.content.lower().strip() in ["confirm", "deny", "'confirm'" "'deny'"]
-            )
-
-            try:
-                response = await bot.wait_for("message", check=check, timeout=300.0)
-                if response.content.lower().strip() == "confirm" or response.content.lower() == "'confirm'":
-                    await ctx.send(f"{member.mention} has joined team " + name)
-                    member.add_roles(role)
+            await user.add_roles(role)
+            
+            #request to add the member
+            for member in members:
+                if(alreadyOnTeam(member) == True):
+                    await ctx.send(f"{member.mention} is already on a team")
                 else:
-                    await ctx.send(f"{member.mention} has denied the request.")
-            except:
-                await ctx.send(f"{member.mention} didn't respond in time. Request expired.")
+                    request_message = await member.send(f"{member.mention}, please confirm if you want to join team " + name + ". Respond with 'confirm' or 'deny'.")
+
+                    def check(message):
+                        return (
+                        message.author == member
+                        and message.content.lower().strip() in ["confirm", "deny", "'confirm'" "'deny'"]
+                    )
+
+                    try:
+                        response = await bot.wait_for("message", check=check, timeout=300.0)
+                        if response.content.lower().strip() == "confirm" or response.content.lower() == "'confirm'":
+                            await ctx.send(f"{member.mention} has joined team " + name)
+                            await member.add_roles(role)
+                        else:
+                            await ctx.send(f"{member.mention} has denied the request.")
+                    except:
+                        await ctx.send(f"{member.mention} didn't respond in time. Request expired.")
     else:
         await ctx.send(f"Sorry friend, you can only have 4 members or fewer on a team :(")
+
+    
 
 
 # Event handler for when the bot is ready
