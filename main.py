@@ -1,7 +1,6 @@
 from decouple import config
 import discord
 from discord.ext import commands
-from datetime import timedelta
 
 
 def check_profanity(sentence):
@@ -26,13 +25,30 @@ if __name__ =='__main__':
     intents.messages = True
     intents.message_content = True
     token = config("DISCORD_BOT_TOKEN")
-
+    intents.members = True
     # Initialize the bot with the specified intents
     bot = discord.Client(intents=intents)
 
     @bot.event
     async def on_ready():
+        global verified_members
+        # Loop through members when the bot is ready
+
+        for guild in bot.guilds:
+            print(f'Listing members in server: {guild.name}\n')
+            print(guild.member_count)
+            for member in guild.members:
+                # print("_" + member.name + "_\n")
+                # print(member.roles)
+                # if role in member.roles:
+                #     print("This person is verified " + member.name)
+                if any(role.name == "Verified" for role in member.roles):
+                    print(f"{member.display_name} is already verified.")
+                else:
+                    print(f"{member.display_name} does not have the 'Verified' role. Sending a verification link...")
+
         print(f'Logged in as {bot.user.name}')
+    
 
     @bot.event
     async def on_message(message):
@@ -68,7 +84,9 @@ if __name__ =='__main__':
                 "You have received a warning for this violation. This warning is a reminder of our rules and a request to adhere to them. Repeated violations may lead to further actions, such as muting or removal from the server.\n"
                 "If you have any questions or concerns, feel free to reach out to the server moderators or administrators. We encourage positive and respectful interactions among our members."
             )
-
+    @bot.event
+    async def on_member_join(member):
+        print(member.name + "joined")
 
     bot.run(token)
 
