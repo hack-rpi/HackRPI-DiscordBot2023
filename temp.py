@@ -1,10 +1,19 @@
 from decouple import config
-token = config("DISCORD_BOT_TOKEN")
 import discord
 from discord.ext import commands
 
+# Get the bot token from the environment variables
+intents = discord.Intents.default()
+intents.message_content = True
+intents.typing = False
+intents.presences = False
+token = config("DISCORD_BOT_TOKEN")
+
 # Create a bot instance
 bot = commands.Bot(command_prefix='!')
+
+#creating a list of group name
+group_name_list = []
 
 
 @bot.event
@@ -49,8 +58,17 @@ async def read_message(message):
 
     words = "Team created with team name"
 
-    if words in message.content:
+    if message.content.startwith(words):
         await message.channel.send("Team name received.")
+        team_name = message.content[len("Team created with team name"):].strip()
+        group_name_list.append(team_name)
+
+async def edit_channel_name():
+    for channel in discord.channels:
+        for i in range(0,len(group_name_list)):
+            new_name = group_name_list[i]
+            await channel.edit(name=new_name)
+
 
 # Run the bot
 bot.run(token)
