@@ -45,32 +45,27 @@ async def print_queue(queue, channel):
 @bot.command()
 async def update_queue_in_channel(queue, channel):
 
+    #Queue
     msg = ""
     if len(queue) == 0:
         msg = "Empty queue"
     else:
-        msg += "Current queue: \n"
+        msg += "Current queue: \n\n"
         for team in queue:
-            if team.is_progress == False:
-                msg += str(team.name) + ": " + str(team.reason)
+            if team.in_progress == False:
+                msg += str(team.name) + ": " + str(team.reason) + "\n"
 
-    message_to_change = await channel.fetch_message(1162486682050887751)
-    await message_to_change.edit(content=msg)
-
-#Updates in progress list in the mentoring-queue channel
-@bot.command()
-async def update_in_progress_in_channel(queue, channel):
-
-    msg = ""
+    #In progress
+    msg += "\n\n"
     if len(queue) == 0:
-        msg = "None in progress"
+        msg = "No teams in progress"
     else:
-        msg += "In progress: \n"
+        msg += "In progress: \n\n"
         for team in queue:
-            if team.is_progress == True:
-                msg += str(team.name) + ": " + str(team.reason)
+            if team.in_progress == True:
+                msg += str(team.name) + ": " + str(team.reason) + "\n"
 
-    message_to_change = await channel.fetch_message(1162486682050887751)
+    message_to_change = await channel.fetch_message(1163937993640386630)
     await message_to_change.edit(content=msg)
 
 #Print msg
@@ -110,7 +105,7 @@ async def on_message(message):
 
         await dm(msg, author)
 
-    #If help message
+    #If help message        e.g. "!mentors Help debugging"
     elif content.startswith('!mentors'):
         reason = content[9:]   
 
@@ -130,14 +125,35 @@ async def on_message(message):
         await dm(msg, author)
         await update_queue_in_channel(queue, channel)
     
-    #If moving a team into progress
+    #If moving a team into progress     e.g. "!p spaceship351"
     elif content.startswith("!p"):
         name = content[3:]
 
         #Set team's in_progress to True
         team = find_ticket(queue, name)
 
-    #If resolve message
+        if team is None:
+            await dm("Unknown team", author)
+            return
+        team.in_progress = True
+
+        await update_queue_in_channel(queue, channel)
+
+    #If moving a team from progress back to queue
+    elif content.startswith("!q"):
+        name = content[3:]
+
+        #Set team's in_progress to True
+        team = find_ticket(queue, name)
+
+        if team is None:
+            await dm("Unknown team", author)
+            return
+        team.in_progress = False
+
+        await update_queue_in_channel(queue, channel)
+
+    #If resolve message        e.g. "?spaceship351"
     elif content[0] == '?':
 
         #ONLY AUTHORIZED CAN DO THIS
@@ -156,34 +172,6 @@ async def on_message(message):
         resolve(queue, name)
         await dm('Removed ' + name, author)
         await update_queue_in_channel(queue, channel)
-
-    """
-    #print queue
-    elif content.startswith('!q'):
-
-        if not authorized(author):
-            await dm("Not authorized", author)
-            return
-
-        msg = ""
-        if len(queue) == 0:
-            msg = "Empty queue"
-        else:
-            msg += "Current queue: \n"
-            for team in queue:
-                msg += str(team.name) + ": " + str(team.reason)
-
-        #channel = bot.get_channel(1161413687656062986)
-        channel = bot.get_channel(1157414401603805284)
-        #channel = discord.utils.get(guild.text_channels, name="Name of channel")
-        message_to_change = await channel.fetch_message(1162486682050887751)
-        await message_to_change.edit(content=msg)
-                
-    #Unknown command
-    elif content.startswith('!') or content.startswith('?'):
-        #await print_msg('Command not found. Type !mentorhelp for commands', channel)
-        await dm('Command not found. Type !mentorhelp for commands', author)
-    """
 
 #Find ticket by team name  
 def find_ticket(list, team_name):
