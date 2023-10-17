@@ -62,22 +62,23 @@ async def read_message(message):
         await message.channel.send("Team name received.")
         team_name = message.content[len("Team created with team name"):].strip()
         group_name_list.append(team_name)
+        await assign_groups(message)
 
 async def assign_groups(ctx):
     text_channels = [channel for channel in ctx.guild.text_channels]
     voice_channels = [channel for channel in ctx.guild.voice_channels]
 
-    # Check if there are enough text and voice channels to form groups
+    """# Check if there are enough text and voice channels to form groups
     if len(text_channels) < 1 or len(voice_channels) < 1:
         await ctx.send("Not enough channels to create groups.")
-        return
+        return"""
 
     # Create groups by pairing a text channel and a voice channel
     groups = list(zip(text_channels, voice_channels))
 
     # Assign names to the groups
     for index, (text_channel, voice_channel) in enumerate(groups):
-        group_name = f'Group {index + 1}'
+        group_name = group_name_list[index]
         await text_channel.edit(name=group_name)
         await voice_channel.edit(name=group_name)
 
