@@ -63,12 +63,25 @@ async def read_message(message):
         team_name = message.content[len("Team created with team name"):].strip()
         group_name_list.append(team_name)
 
-async def edit_channel_name():
-    for channel in discord.channels:
-        for i in range(0,len(group_name_list)):
-            new_name = group_name_list[i]
-            await channel.edit(name=new_name)
+async def assign_groups(ctx):
+    text_channels = [channel for channel in ctx.guild.text_channels]
+    voice_channels = [channel for channel in ctx.guild.voice_channels]
 
+    # Check if there are enough text and voice channels to form groups
+    if len(text_channels) < 1 or len(voice_channels) < 1:
+        await ctx.send("Not enough channels to create groups.")
+        return
+
+    # Create groups by pairing a text channel and a voice channel
+    groups = list(zip(text_channels, voice_channels))
+
+    # Assign names to the groups
+    for index, (text_channel, voice_channel) in enumerate(groups):
+        group_name = f'Group {index + 1}'
+        await text_channel.edit(name=group_name)
+        await voice_channel.edit(name=group_name)
+
+        await ctx.send(f'Assigned name "{group_name}" to group {index + 1}.')
 
 # Run the bot
 bot.run(token)
