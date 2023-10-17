@@ -21,6 +21,9 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 #Queue of all teams
 queue = []
 
+#List of teams in progress
+in_progress = {}
+
 #Bot is ready
 @bot.event
 async def on_ready():
@@ -48,7 +51,24 @@ async def update_queue_in_channel(queue, channel):
     else:
         msg += "Current queue: \n"
         for team in queue:
-            msg += str(team.name) + ": " + str(team.reason)
+            if team.is_progress == False:
+                msg += str(team.name) + ": " + str(team.reason)
+
+    message_to_change = await channel.fetch_message(1162486682050887751)
+    await message_to_change.edit(content=msg)
+
+#Updates in progress list in the mentoring-queue channel
+@bot.command()
+async def update_in_progress_in_channel(queue, channel):
+
+    msg = ""
+    if len(queue) == 0:
+        msg = "None in progress"
+    else:
+        msg += "In progress: \n"
+        for team in queue:
+            if team.is_progress == True:
+                msg += str(team.name) + ": " + str(team.reason)
 
     message_to_change = await channel.fetch_message(1162486682050887751)
     await message_to_change.edit(content=msg)
@@ -90,13 +110,6 @@ async def on_message(message):
 
         await dm(msg, author)
 
-        """
-        await print_msg('Hi! Please keep the assistance requests in the following format:\n' + 
-        '!mentors [Table #] [Programming Languages used] [Short Description]\n'
-        'WARNING: If you do not follow this format, we will not get to you immediately', channel)
-        """
-        
-
     #If help message
     elif content.startswith('!mentors'):
         reason = content[9:]   
@@ -116,17 +129,18 @@ async def on_message(message):
 
         await dm(msg, author)
         await update_queue_in_channel(queue, channel)
-        #await print_msg("Currently " + str(ppl_ahead_of_me) + " people ahead", channel)
-         
+    
+    #If moving a team into progress
+    elif content.startswith("!p"):
+        name = content[3:]
+
+        #Set team's in_progress to True
+        team = find_ticket(queue, name)
+
     #If resolve message
     elif content[0] == '?':
 
         #ONLY AUTHORIZED CAN DO THIS
-        """
-        if not authorized(author):
-            await print_msg("Not authorized", channel)
-            return
-        """
         if not authorized(author):
             await dm("Not authorized", author)
             return
@@ -135,20 +149,15 @@ async def on_message(message):
         name = content[1:]
         ticket = find_ticket(queue, name)
 
-        """
-        if ticket is None:
-            await print_msg("Unknown team", channel)
-            return 
-        """
         if ticket is None:
             await dm("Unknown team", author)
             return 
 
         resolve(queue, name)
-        # await print_msg('Removed ' + name, channel)
         await dm('Removed ' + name, author)
         await update_queue_in_channel(queue, channel)
 
+    """
     #print queue
     elif content.startswith('!q'):
 
@@ -174,7 +183,8 @@ async def on_message(message):
     elif content.startswith('!') or content.startswith('?'):
         #await print_msg('Command not found. Type !mentorhelp for commands', channel)
         await dm('Command not found. Type !mentorhelp for commands', author)
-        
+    """
+
 #Find ticket by team name  
 def find_ticket(list, team_name):
 
