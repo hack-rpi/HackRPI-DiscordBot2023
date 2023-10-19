@@ -1,71 +1,59 @@
-from decouple import config
-from collections import deque
-from discord.ext import commands
 import discord
+from decouple import config
+from discord.ext import commands
 import asyncio
-import time
 
+intents = discord.Intents.default()
+intents.typing = False
+intents.presences = False
+intents.message_content = True
 
-token = config("DISCORD_BOT_TOKEN")
+bot = commands.Bot(command_prefix='!', intents=intents)
 
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix = "!", intents = intents)
-
-
-spam_count = {}
-last_messages = {} 
+spam_dict = {}
+timeout_role_id = 123456789  # Replace with your timeout role ID
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name}')
 
-
 @bot.event
 async def on_message(message):
-    # Ignore messages from the bot itself
     if message.author == bot.user:
         return
-    
-    author_id = str(message.author.id)
 
-    if author_id not in last_messages:
-        last_messages[author_id] = deque(maxlen=3)
+    user_id = message.author.id
+    now = message.created_at.timestamp()
 
-    last_messages[author_id].append(time.time())
+    if user_id in spam_dict:
+        last_messages = spam_dict[user_id]
+        last_messages = [msg_time for msg_time in last_messages if now - msg_time <= 5]
+        
+        if len(last_messages) >= 3:
+            await message.author.send("You are sending too many messages. You are now in timeout for 2 minutes.")
+            timeout_role = message.guild.get_role(timeout_role_id)
 
-    if len(last_messages[author_id]) == 3 and (time.time() - last_messages[author_id][0]) <= 5:
-        if author_id in spam_count:
-            spam_count[author_id] += 1
-        else:
-            spam_count[author_id] = 1
+            if timeout_role:
+                # Remove all the user's roles
+                original_roles = message.author.roles
+                await message.author.edit(roles=[timeout_role])
+                await asyncio.sleep(120)  # Timeout for 2 minutes (120 seconds)
 
-        if spam_count[author_id] > 3:
-            await message.author.send("You are spamming. Please stop.")
-            timeout_role = discord.utils.get(message.author.guild.roles, name="Timeout")
-            await message.author.add_roles(timeout_role)
+                # Re-add the user's original roles
+                await message.author.edit(roles=original_roles)
+            
+            return  # Prevent further message processing during the timeout
+        
+        last_messages.append(now)
+        spam_dict[user_id] = last_messages
+    else:
+        spam_dict[user_id] = [now]
 
-            original_roles = message.author.roles.copy()
-
-            for role in original_roles:
-                if role != timeout_role:
-                    print(role)
-                    await message.author.remove_roles(role)
-
-            await message.author.send("You have been placed in timeout for 2 minutes.")
-            await message.delete()
-            await asyncio.sleep(120) 
-
-
-            await message.author.remove_roles(timeout_role)
-            for role in original_roles:
-                await message.author.add_roles(role)
-
-            spam_count.pop(author_id, None)
+    if message.author.roles and any(role.id == timeout_role_id for role in message.author.roles):
+        return  # Prevent users in timeout from sending messages
 
     await bot.process_commands(message)
 
-@bot.command()
-async def ping(ctx):
-    await ctx.send('Pong!')
-
+# Run your bot with your token
+token = config("DISCORD_BOT_TOKEN")
 bot.run(token)
