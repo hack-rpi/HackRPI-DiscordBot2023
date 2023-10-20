@@ -27,7 +27,12 @@ async def on_member_join(member):
 
 async def send_captcha(member):
     data = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=5))
-    captcha_bytes = captcha_generator.generate(data)
+    
+    # Generate the captcha image and save its content to a BytesIO object
+    captcha_image = captcha_generator.generate(data)
+    
+    # Convert the BytesIO object to bytes
+    captcha_bytes = captcha_image.getvalue()
 
     # Save the bytes to a temporary file
     temp_file = f"captcha_{member.id}.png"
@@ -45,9 +50,7 @@ async def send_captcha(member):
     file = discord.File(fp=temp_file, filename="captcha.png")
 
     embed = discord.Embed(title="Verification", description="Solve the CAPTCHA to get verified!")
-    message = await dm_channel.send(embed=embed, file=file, components=[[
-        discord.ui.Button(style=discord.ButtonStyle.green, label="I'm Human", custom_id="verify_me")
-    ]])
+    message = await dm_channel.send(embed=embed, file=file)
 
     try:
         interaction = await bot.wait_for("button_click", check=lambda i: i.custom_id == "verify_me" and i.user == member, timeout=120)
