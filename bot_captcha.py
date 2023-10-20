@@ -51,24 +51,30 @@ async def send_captcha(member):
     embed = discord.Embed(title="Verification", description="Solve the CAPTCHA to get verified!")
     await dm_channel.send(embed=embed, file=file)
 
-    try:
-        # Wait for the user's response in DM
-        response = await bot.wait_for('message', check=lambda m: m.author == member and isinstance(m.channel, discord.DMChannel), timeout=300)
-        
-        # Check the response against the stored CAPTCHA data
-        if response.content == captchas[member.id]:
-            # Assign the role and send the welcome message
-            role = discord.utils.get(member.guild.roles, name="Verified")
-            await member.add_roles(role)
-            await dm_channel.send(f"Welcome {member.mention}, you are now verified and have been given the 'Verified' role!")
-            del captchas[member.id]
-        else:
-            await dm_channel.send(f"Sorry {member.mention}, that's incorrect. Please try the CAPTCHA again.")
-    except asyncio.TimeoutError:
-        await dm_channel.send(f"Verification timed out. Please request a new CAPTCHA if you wish to verify.")
+    timeout = 300  # 5 minutes
+    start_time = asyncio.get_event_loop().time()
 
-    # Remove the temporary file
-    os.remove(temp_file)
+    while (asyncio.get_event_loop().time() - start_time) < timeout:
+        try:
+            # Wait for the user's response in DM
+            response = await bot.wait_for('message', check=lambda m: m.author == member and isinstance(m.channel, discord.DMChannel), timeout=timeout)
+            
+            # Check the response against the stored CAPTCHA data
+            if response.content == captchas[member.id]:
+                # Assign the role and send the welcome message
+                role = discord.utils.get(member.guild.roles, name="Verified")
+                await member.add_roles(role)
+                await dm_channel.send(f"Welcome {member.mention}, you are now verified and have been given the 'Verified' role!")
+                del captchas[member.id]
+                return
+            else:
+                await dm_channel.send(f"Sorry {member.mention}, that's incorrect. Please try the CAPTCHA again.")
+                timeout -= (asyncio.get_event_loop().time() - start_time)  # Deduct the elapsed time from the total timeout
+        except asyncio.TimeoutError:
+            await dm_channel.send(f"Verification timed out. Please request a new CAPTCHA if you wish to verify.")
+            return
+
+    os.remove(temp_file)  # Remove the temporary file outside the loop
 
 @bot.event
 async def on_message(message):
