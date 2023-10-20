@@ -52,11 +52,7 @@ async def send_captcha(member):
     embed = discord.Embed(title="Verification", description="Solve the CAPTCHA to get verified!")
     message = await dm_channel.send(embed=embed, file=file)
 
-    try:
-        interaction = await bot.wait_for("button_click", check=lambda i: i.custom_id == "verify_me" and i.user == member, timeout=120)
-        await interaction.response.send_message("Please type the CAPTCHA content to verify!", ephemeral=True)
-    except TimeoutError:
-        await message.edit(content="CAPTCHA verification time expired. Please request a new CAPTCHA if you wish to verify.", components=[])
+    # ... Rest of your code for handling button interactions ...
 
     # Remove the temporary file
     os.remove(temp_file)
@@ -65,6 +61,10 @@ async def send_captcha(member):
 @bot.event
 async def on_message(message):
     if message.author.bot:
+        return
+
+    # Check if the message is from a guild
+    if message.guild is None:
         return
 
     if message.author.id in captchas:
