@@ -21,25 +21,14 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 #Queue of all teams
 queue = []
 
-#List of teams in progress
-in_progress = {}
-
 #Bot is ready
 @bot.event
 async def on_ready():
-    print("Welcome!")
 
-#Prints queue (only to authorized ppl)
-@bot.command()
-async def print_queue(queue, channel):
+    assert(len(queue) == 0)
+    channel = discord.utils.get(bot.get_all_channels(), name="mentoring-queue")
+    await update_queue_in_channel(queue, channel)
 
-    if len(queue) == 0:
-        await print_msg("Empty queue", channel)
-    else:
-        await print_msg('Current queue: ', channel)
-        for team in queue:
-            return_msg = str(team.name) + ": " + str(team.reason)
-            await print_msg(return_msg, channel)
 
 #Updates queue in the mentoring-queue channel
 @bot.command()
@@ -58,13 +47,19 @@ async def update_queue_in_channel(queue, channel):
     #In progress
     msg += "\n\n"
     if len(queue) == 0:
-        msg = "No teams in progress"
+        msg += "No teams in progress"
     else:
         msg += "In progress: \n\n"
         for team in queue:
             if team.in_progress == True:
                 msg += str(team.name) + ": " + str(team.reason) + "\n"
 
+
+    #If we create a new channel during production, change this number to 
+    #the ID of any message sent by the bot in that new channel. The bot 
+    #would then keep editing that message to display queue. The msg has 
+    #to be from the bot and not a person, otherwise it won't work. Type
+    #"!print" for the bot to print something
     message_to_change = await channel.fetch_message(1163937993640386630)
     await message_to_change.edit(content=msg)
 
@@ -86,7 +81,7 @@ async def on_message(message):
 
     author = message.author
     content = message.content
-    channel = bot.get_channel(1157414401603805284)
+    channel = discord.utils.get(bot.get_all_channels(), name="mentoring-queue")
 
     #Make sure the message isn't from us
     if author == bot.user:
@@ -95,6 +90,10 @@ async def on_message(message):
     #if empty msg 
     if content == "":
         return
+
+    #Print anything
+    if content.startswith("!print"):
+        await channel.send("Hello!")
 
     #Instructions
     if content.startswith("!mentorhelp"):
@@ -125,7 +124,7 @@ async def on_message(message):
         await dm(msg, author)
         await update_queue_in_channel(queue, channel)
     
-    #If moving a team into progress     e.g. "!p spaceship351"
+    #If moving a team into progress     e.g. "!p team351"
     elif content.startswith("!p"):
         name = content[3:]
 
@@ -133,13 +132,13 @@ async def on_message(message):
         team = find_ticket(queue, name)
 
         if team is None:
-            await dm("Unknown team", author)
+            await dm("Unknown team. Example command: '!p team9999' ", author)
             return
         team.in_progress = True
 
         await update_queue_in_channel(queue, channel)
 
-    #If moving a team from progress back to queue
+    #If moving a team from progress back to queue    e.g. "!q team351"
     elif content.startswith("!q"):
         name = content[3:]
 
@@ -147,14 +146,14 @@ async def on_message(message):
         team = find_ticket(queue, name)
 
         if team is None:
-            await dm("Unknown team", author)
+            await dm("Unknown team. Example command: '!q team9999' ", author)
             return
         team.in_progress = False
 
         await update_queue_in_channel(queue, channel)
 
-    #If resolve message        e.g. "?spaceship351"
-    elif content[0] == '?':
+    #If resolve message        e.g. "!r team351"
+    elif content.startswith("!r"):
 
         #ONLY AUTHORIZED CAN DO THIS
         if not authorized(author):
@@ -162,11 +161,11 @@ async def on_message(message):
             return
 
         #Team to remove from queue
-        name = content[1:]
+        name = content[3:]
         ticket = find_ticket(queue, name)
 
         if ticket is None:
-            await dm("Unknown team", author)
+            await dm("Unknown team. Example command: '!r team9999' ", author)
             return 
 
         resolve(queue, name)
