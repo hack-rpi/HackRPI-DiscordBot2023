@@ -17,6 +17,21 @@ def check_profanity(sentence):
     sentence_set = set(words)
     return sentence_set.intersection(bad_words)
 
+def send_verification(user):
+    async def _send_verification():
+        dm_channel = await user.create_dm()
+        await dm_channel.send(
+            f"Hello {user},\n"
+            "\n"
+            "To verify yourself, please respond to this message with a specific code or by following the instructions provided. This is to ensure that you are a legitimate member of our server."
+            "\n"
+            "Thank you for your cooperation!"
+        )
+    
+    if not user.bot:  # Ensure it's not a bot account
+        bot.loop.create_task(_send_verification())
+
+        
 if __name__ =='__main__':
     # Define your intents
     intents = discord.Intents.default()
@@ -38,17 +53,14 @@ if __name__ =='__main__':
             print(f'Listing members in server: {guild.name}\n')
             print(guild.member_count)
             for member in guild.members:
-                # print("_" + member.name + "_\n")
-                # print(member.roles)
-                # if role in member.roles:
-                #     print("This person is verified " + member.name)
                 if any(role.name == "Verified" for role in member.roles):
                     print(f"{member.display_name} is already verified.")
                 else:
                     print(f"{member.display_name} does not have the 'Verified' role. Sending a verification link...")
+                    send_verification(member)  # Call send_verification for members who need to be verified
 
         print(f'Logged in as {bot.user.name}')
-    
+
 
     @bot.event
     async def on_message(message):
