@@ -25,7 +25,7 @@ async def on_member_join(member):
 
 async def send_captcha(member):
     while True:  # Continues until correct CAPTCHA or timeout
-        data = ''.join(random.choices('ABCDEFGHJKMNPQRSTUVWXYZabcdefghkmnpqrstuvwxyz123456789', k=5))
+        data = ''.join(random.choices('ABCDEFGHJKMNPQRSTUVWXYZ123456789', k=5))
         captcha_image = captcha_generator.generate(data)
         captcha_bytes = captcha_image.getvalue()
 
@@ -62,7 +62,7 @@ async def send_captcha(member):
                 else:
                     fail_count += 1
                     if fail_count < 3:
-                        await dm_channel.send(f"Sorry {member.mention}, that's incorrect. You have {3 - fail_count} attempts left.")
+                        await dm_channel.send(f"Sorry {member.mention}, that's incorrect. You have {3 - fail_count} attempts left. A new captcha will be sent after your remaining attempts run out.")
                     else:
                         await dm_channel.send(f"Sorry {member.mention}, that's incorrect. Generating a new CAPTCHA for you...")
                         break  # Exit the inner loop to generate a new CAPTCHA
