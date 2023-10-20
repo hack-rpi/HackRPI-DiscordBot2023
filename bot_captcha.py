@@ -6,6 +6,7 @@ import random
 import io
 import os
 from PIL import Image
+import asyncio
 
 token = config("DISCORD_BOT_TOKEN")
 intents = discord.Intents.all()
@@ -14,16 +15,13 @@ captcha_generator = ImageCaptcha()
 
 captchas = {}
 
-
 @bot.event
 async def on_ready():
     print(f'Bot is ready as {bot.user}')
 
-
 @bot.event
 async def on_member_join(member):
     await send_captcha(member)
-
 
 async def send_captcha(member):
     data = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=5))
@@ -43,20 +41,34 @@ async def send_captcha(member):
 
     dm_channel = await member.create_dm()
 
-    # Open the saved image using PIL
+    # Open the saved image using PIL, then close it immediately after
     image = Image.open(temp_file)
+    image.close()
 
     # Create a discord.File object from the saved file
     file = discord.File(fp=temp_file, filename="captcha.png")
 
     embed = discord.Embed(title="Verification", description="Solve the CAPTCHA to get verified!")
-    message = await dm_channel.send(embed=embed, file=file)
+    await dm_channel.send(embed=embed, file=file)
 
-    # ... Rest of your code for handling button interactions ...
+    try:
+        # Wait for the user's response in DM
+        response = await bot.wait_for('message', check=lambda m: m.author == member and isinstance(m.channel, discord.DMChannel), timeout=300)
+        
+        # Check the response against the stored CAPTCHA data
+        if response.content == captchas[member.id]:
+            # Assign the role and send the welcome message
+            role = discord.utils.get(member.guild.roles, name="Verified")
+            await member.add_roles(role)
+            await dm_channel.send(f"Welcome {member.mention}, you are now verified and have been given the 'Verified' role!")
+            del captchas[member.id]
+        else:
+            await dm_channel.send(f"Sorry {member.mention}, that's incorrect. Please try the CAPTCHA again.")
+    except asyncio.TimeoutError:
+        await dm_channel.send(f"Verification timed out. Please request a new CAPTCHA if you wish to verify.")
 
     # Remove the temporary file
     os.remove(temp_file)
-
 
 @bot.event
 async def on_message(message):
