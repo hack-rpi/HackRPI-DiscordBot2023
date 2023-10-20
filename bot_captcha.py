@@ -24,7 +24,7 @@ async def on_member_join(member):
     await send_captcha(member)
 
 async def send_captcha(member):
-    data = ''.join(random.choices('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=5))
+    data = ''.join(random.choices('ABCDEFGHJKMNPQRSTUVWXYZabcdefghkmnpqrstuvwxyz123456789', k=5))
     
     # Generate the captcha image and save its content to a BytesIO object
     captcha_image = captcha_generator.generate(data)
