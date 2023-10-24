@@ -21,12 +21,25 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 #Queue of all teams
 queue = []
 
-#Bot is ready
+#Message id that the bot will constantly update for queue
+msg_id = ""
+
+#Initialize server
 @bot.event
 async def on_ready():
 
     assert(len(queue) == 0)
     channel = discord.utils.get(bot.get_all_channels(), name="mentoring-queue")
+
+    await channel.send("This is the msg the bot will constantly update for the queue")    
+    history = channel.history()
+    
+    #Find most recent msg (or the only msg)
+    async for msg in history:
+        global msg_id
+        msg_id = msg.id
+        break
+
     await update_queue_in_channel(queue, channel)
 
 
@@ -54,13 +67,7 @@ async def update_queue_in_channel(queue, channel):
             if team.in_progress == True:
                 msg += str(team.name) + ": " + str(team.reason) + "\n"
 
-
-    #If we create a new channel during production, change this number to 
-    #the ID of any message sent by the bot in that new channel. The bot 
-    #would then keep editing that message to display queue. The msg has 
-    #to be from the bot and not a person, otherwise it won't work. Type
-    #"!print" for the bot to print something
-    message_to_change = await channel.fetch_message(1163937993640386630)
+    message_to_change = await channel.fetch_message(msg_id)
     await message_to_change.edit(content=msg)
 
 #Print msg
