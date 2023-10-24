@@ -28,7 +28,7 @@ token = config("DISCORD_BOT_TOKEN")
 
 
     # Initialize the bot with the specified intents
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='/', intents=intents)
 
 # Define a simple command
 @bot.command()
@@ -86,7 +86,34 @@ async def team(ctx, *members: discord.Member):
     else:
         await ctx.send(f"Sorry friend, you can only have 4 members or fewer on a team :(")
 
-    
+@bot.command()
+async def join(ctx):
+    user = ctx.author
+    banned_roles = []
+
+    await user.send("What team would you like to join?")
+
+    def check(message):
+        return message.author == ctx.author and isinstance(message.channel, discord.DMChannel)
+    try:
+        response = await bot.wait_for('message', check=check, timeout=300.0)
+        team_name = response.content
+        try:
+            role = discord.utils.get(ctx.guild.roles, name=team_name)
+            if team_name not in banned_roles:
+                members_with_role = [member for member in ctx.guild.members if role in member.roles]
+                if(len(members_with_role) <= 4):
+                    await user.add_roles(role)
+                    await ctx.send("Sucessfully joined team " + team_name)
+                else:
+                    await ctx.send("Team is already full.")
+            else:
+                await ctx.send("Nice try bud, but you can't join non-team roles.")
+        except:
+            await ctx.send("Team not found")
+    except:
+        await user.send("Time out")
+
 
 
 # Event handler for when the bot is ready
