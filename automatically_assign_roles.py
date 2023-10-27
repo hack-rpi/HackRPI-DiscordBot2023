@@ -89,7 +89,7 @@ async def team(ctx, *members: discord.Member):
 @bot.command()
 async def join(ctx):
     user = ctx.author
-    banned_roles = []
+    banned_roles = ["HackRPI Bot", "RCOS ppl", "Verified", "Director", "Mentors", "Muted", "Timeout", "ali"]
 
     await user.send("What team would you like to join?")
 
@@ -100,7 +100,7 @@ async def join(ctx):
         team_name = response.content
         try:
             role = discord.utils.get(ctx.guild.roles, name=team_name)
-            if team_name not in banned_roles:
+            if(team_name not in banned_roles):
                 members_with_role = [member for member in ctx.guild.members if role in member.roles]
                 if(len(members_with_role) <= 4):
                     await user.add_roles(role)
@@ -113,6 +113,23 @@ async def join(ctx):
             await ctx.send("Team not found")
     except:
         await user.send("Time out")
+
+
+@bot.command()
+async def leave(ctx):
+    color = "0x1bdf65"
+    role_to_remove = discord.utils.get(ctx.guild.roles, color=discord.Colour(int(color, 16)))
+    
+    if not role_to_remove:
+        await ctx.send("Role not found.")
+        return
+
+    user = ctx.message.author
+    if role_to_remove in user.roles:
+        await user.remove_roles(role_to_remove)
+        await ctx.send(f"You've been removed from the team")
+    else:
+        await ctx.send("You don't have a team to leave.")
 
 
 
