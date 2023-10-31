@@ -56,7 +56,7 @@ async def read_message(message):
     if message.author == bot.user:
         return
 
-    words = "Team created with team name"
+    words = "Successfully joined team"
 
     if message.content.startwith(words):
         await message.channel.send("Team name received.")
@@ -75,10 +75,21 @@ async def assign_groups(ctx):
 
     # Create groups by pairing a text channel and a voice channel
     groups = list(zip(text_channels, voice_channels))
+    guild = ctx.guild
+    # Create the channel
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(read_messages=False),
+        guild.me: discord.PermissionOverwrite(read_messages=True)
+    }
 
     # Assign names to the groups
     for index, (text_channel, voice_channel) in enumerate(groups):
         group_name = group_name_list[index]
+        allowed_roles = [discord.utils.get(guild.roles, name=group_name), discord.utils.get(guild.roles, name='RoleName2')]
+
+        for role in allowed_roles:
+            overwrites[role] = discord.PermissionOverwrite(read_messages=True)
+            
         await text_channel.edit(name=group_name)
         await voice_channel.edit(name=group_name)
 
