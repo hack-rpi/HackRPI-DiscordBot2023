@@ -10,7 +10,7 @@ intents.presences = False
 token = config("DISCORD_BOT_TOKEN")
 
 # Create a bot instance
-bot = commands.Bot(command_prefix='!')
+bot = commands.Bot(command_prefix='!',intents = intents)
 
 #creating a list of group name
 group_name_list = []
@@ -32,6 +32,7 @@ async def create_teams(ctx, num_players: int):
 
         # Calculate the number of teams
         num_teams = len(members) // num_players
+        await ctx.send(f'Successfully created {num_teams} teams!')
 
         # Create teams
         for i in range(num_teams):
@@ -50,7 +51,6 @@ async def create_teams(ctx, num_players: int):
             await text_channel.send(f'Team-{i + 1} has been created, and members have been assigned.')
     else:
         print('Sorry you have not right to create channels.')
-    await ctx.send(f'Successfully created {num_teams} teams!')
 
 async def read_message(message):
     if message.author == bot.user:
