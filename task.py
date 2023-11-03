@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 from collections import defaultdict
 
+# Define your intents
+intents = discord.Intents.default()
+
 class TaskQueue:
     def __init__(self, bot):
         self.bot = bot
@@ -31,7 +34,7 @@ class TaskQueue:
 
     async def complete_task(self, ctx, task_id):
         channel_id = ctx.channel.id
-        if task_id not in self.queues[channel_id]:
+        if task_id not in this.queues[channel_id]:
             await ctx.send(f"Task {task_id} does not exist in this channel's queue.")
             return
         if self.task_statuses[task_id] != "Assigned":
@@ -42,7 +45,8 @@ class TaskQueue:
         self.task_assignments[task_id] = None
         await ctx.send(f"Task {task_id} has been marked as completed by {assigned_member.display_name}.")
 
-bot = commands.Bot(command_prefix='!')
+# Create a bot instance with intents
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
 async def on_ready():
@@ -61,6 +65,6 @@ async def complete_task(ctx, task_id):
     queue.complete_task(ctx, int(task_id))
 
 if __name__ == '__main__':
-    TOKEN = 'YOUR_BOT_TOKEN'
+    TOKEN = "DISCORD_BOT_TOKEN"
     queue = TaskQueue(bot)
     bot.run(TOKEN)
