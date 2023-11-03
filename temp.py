@@ -7,7 +7,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 intents.typing = False
 intents.presences = False
-token = config("DISCORD_BOT_TOKEN")
+token = config("DISCORD_BOT_TOKEN", default = 'MTE1NDQ2MTAyMzUyMTIxMDM4OA.GiCzKZ.gnM4Fq0P1CF4cLeF-EQ1AazikKi-w4QQ6URm8A')
 
 # Create a bot instance
 bot = commands.Bot(command_prefix='!',intents = intents)
@@ -65,35 +65,26 @@ async def read_message(message):
         await assign_groups(message)
 
 async def assign_groups(ctx):
+    guild = ctx.guild
     text_channels = [channel for channel in ctx.guild.text_channels]
     voice_channels = [channel for channel in ctx.guild.voice_channels]
 
-    """# Check if there are enough text and voice channels to form groups
-    if len(text_channels) < 1 or len(voice_channels) < 1:
-        await ctx.send("Not enough channels to create groups.")
-        return"""
+    # Create the groups
+    for index, group_name in enumerate(group_name_list):
+        # Create a new role for the group
+        role = await guild.create_role(name=group_name, reason="Creating group role")
 
-    # Create groups by pairing a text channel and a voice channel
-    groups = list(zip(text_channels, voice_channels))
-    guild = ctx.guild
-    # Create the channel
-    overwrites = {
-        guild.default_role: discord.PermissionOverwrite(read_messages=False),
-        guild.me: discord.PermissionOverwrite(read_messages=True)
-    }
+        # Create text and voice channels for the group
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(read_messages=False),
+            role: discord.PermissionOverwrite(read_messages=True)
+        }
+        text_channel = await guild.create_text_channel(name=group_name, overwrites=overwrites)
+        voice_channel = await guild.create_voice_channel(name=group_name, overwrites=overwrites)
 
-    # Assign names to the groups
-    for index, (text_channel, voice_channel) in enumerate(groups):
-        group_name = group_name_list[index]
-        allowed_roles = [discord.utils.get(guild.roles, name=group_name), discord.utils.get(guild.roles, name='RoleName2')]
+        await ctx.send(f'Created group "{group_name}" with text and voice channels.')
 
-        for role in allowed_roles:
-            overwrites[role] = discord.PermissionOverwrite(read_messages=True)
-            
-        await text_channel.edit(name=group_name)
-        await voice_channel.edit(name=group_name)
-
-        await ctx.send(f'Assigned name "{group_name}" to group {index + 1}.')
+    await ctx.send("Groups have been created.")
 
 # Run the bot
 bot.run(token)
