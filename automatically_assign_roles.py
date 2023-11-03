@@ -30,7 +30,7 @@ token = config("DISCORD_BOT_TOKEN")
     # Initialize the bot with the specified intents
 bot = commands.Bot(command_prefix='/', intents=intents)
 
-# Define a simple command
+# Team Command
 @bot.command()
 async def team(ctx, *members: discord.Member):
     if len(members) < 3:
@@ -39,7 +39,7 @@ async def team(ctx, *members: discord.Member):
         user = ctx.author
     #get name from author
         try:
-            await user.send("Hey buddddd... could you send me ur team name pweaseeee.")
+            await user.send("Hello! What would you like to name your team?")
 
             def check(message):
                 return message.author == ctx.author and isinstance(message.channel, discord.DMChannel)
@@ -47,7 +47,7 @@ async def team(ctx, *members: discord.Member):
             response = await bot.wait_for('message', check=check, timeout=300.0)
             name = response.content
         except:
-            await user.send("You're too slowwwwww.")
+            await user.send("You're too slow! This request timed out... Try again and be faster this time :)")
 
 
         #add the author
@@ -61,8 +61,9 @@ async def team(ctx, *members: discord.Member):
 
             await user.add_roles(role)
             
-            #request to add the member
+            
             for member in members:
+                #request to add the member
                 if(alreadyOnTeam(member) == True):
                     await ctx.send(f"{member.mention} is already on a team")
                 else:
@@ -71,7 +72,7 @@ async def team(ctx, *members: discord.Member):
                     def check(message):
                         return (
                         message.author == member
-                        and message.content.lower().strip() in ["confirm", "deny", "'confirm'" "'deny'"]
+                        and message.content.lower().strip() in ["confirm", "deny", "'confirm'", "'deny'"]
                     )
 
                     try:
@@ -86,11 +87,14 @@ async def team(ctx, *members: discord.Member):
     else:
         await ctx.send(f"Sorry friend, you can only have 4 members or fewer on a team :(")
 
+#join command
 @bot.command()
 async def join(ctx):
     user = ctx.author
+    #blacklist to prevent joining non-team roles
     banned_roles = ["HackRPI Bot", "RCOS ppl", "Verified", "Director", "Mentors", "Muted", "Timeout", "ali"]
 
+    #team Identification system
     await user.send("What team would you like to join?")
 
     def check(message):
@@ -103,27 +107,33 @@ async def join(ctx):
             if(team_name not in banned_roles):
                 members_with_role = [member for member in ctx.guild.members if role in member.roles]
                 if(len(members_with_role) <= 4):
+                    #join that team!
                     await user.add_roles(role)
-                    await ctx.send("Sucessfully joined team " + team_name)
+                    await ctx.send(user.name + "Sucessfully joined team " + team_name)
                 else:
+                    #full team
                     await ctx.send("Team is already full.")
             else:
+                #maybe add a punitive here? could add the user to a list of troublemakers?
                 await ctx.send("Nice try bud, but you can't join non-team roles.")
         except:
+            #tried to join a team that doesn't exist
             await ctx.send("Team not found")
     except:
-        await user.send("Time out")
+        await user.send("Timed out... try again and be quicker :)... or don't. I'm not your dad.")
 
-
+#Leave command
 @bot.command()
 async def leave(ctx):
+    #checks to see if the user has a role with the team color
     color = "0x1bdf65"
     role_to_remove = discord.utils.get(ctx.guild.roles, color=discord.Colour(int(color, 16)))
     
     if not role_to_remove:
-        await ctx.send("Role not found.")
+        await ctx.send("It looks like no one's made teams yet. You could be the first!")
         return
 
+    #removes the user from any role with the team color (there should only ever be 1).
     user = ctx.message.author
     if role_to_remove in user.roles:
         await user.remove_roles(role_to_remove)
@@ -140,3 +150,4 @@ async def on_ready():
 
 # Run the bot with your token
 bot.run(token)
+  
