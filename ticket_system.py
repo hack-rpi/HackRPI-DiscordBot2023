@@ -30,12 +30,15 @@ async def on_ready():
 
     assert(len(queue) == 0)
     channel = discord.utils.get(bot.get_all_channels(), name="mentoring-queue")
-    history = channel.history()
 
-    if not history:
-        await channel.send("This is the msg the bot will constantly update for the queue")    
+    #Delete all msgs
+    await channel.purge()
+
+    #This is the message to update for queue
+    await channel.send("This is the msg the bot will constantly update for the queue")    
     
     #Find most recent msg (or the only msg)
+    history = channel.history()
     async for msg in history:
         global msg_id
         msg_id = msg.id
