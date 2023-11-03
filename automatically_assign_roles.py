@@ -109,7 +109,7 @@ async def join(ctx):
                 if(len(members_with_role) <= 4):
                     #join that team!
                     await user.add_roles(role)
-                    await ctx.send(user.name + "Sucessfully joined team " + team_name)
+                    await ctx.send(user.mention + " Sucessfully joined team " + team_name)
                 else:
                     #full team
                     await ctx.send("Team is already full.")
@@ -137,7 +137,7 @@ async def leave(ctx):
     user = ctx.message.author
     if role_to_remove in user.roles:
         await user.remove_roles(role_to_remove)
-        await ctx.send(f"You've been removed from the team")
+        await ctx.send(f"{user.mention} has been removed from {role_to_remove.name}")
     else:
         await ctx.send("You don't have a team to leave.")
 
