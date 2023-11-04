@@ -59,7 +59,7 @@ async def update_queue_in_channel(queue, channel):
         msg += "Current queue: \n\n"
         for team in queue:
             if team.in_progress == False:
-                msg += str(team.name) + ": " + str(team.reason) + "\n"
+                msg += "-  " + str(team.name) + ": " + str(team.reason) + "\n"
 
     #In progress
     msg += "\n\n"
@@ -69,7 +69,7 @@ async def update_queue_in_channel(queue, channel):
         msg += "In progress: \n\n"
         for team in queue:
             if team.in_progress == True:
-                msg += str(team.name) + ": " + str(team.reason) + "\n"
+                msg += "-  " + str(team.name) + ": " + str(team.reason) + "\n"
 
     message_to_change = await channel.fetch_message(msg_id)
     await message_to_change.edit(content=msg)
@@ -137,6 +137,12 @@ async def on_message(message):
     
     #If moving a team into progress     e.g. "!p team351"
     elif content.startswith("!p"):
+
+        #ONLY AUTHORIZED CAN DO THIS
+        if not authorized(author):
+            await dm("Not authorized", author)
+            return
+
         name = content[3:]
 
         #Set team's in_progress to True
@@ -151,6 +157,12 @@ async def on_message(message):
 
     #If moving a team from progress back to queue    e.g. "!q team351"
     elif content.startswith("!q"):
+
+        #ONLY AUTHORIZED CAN DO THIS
+        if not authorized(author):
+            await dm("Not authorized", author)
+            return
+
         name = content[3:]
 
         #Set team's in_progress to True
@@ -180,7 +192,6 @@ async def on_message(message):
             return 
 
         resolve(queue, name)
-        await dm('Removed ' + name, author)
         await update_queue_in_channel(queue, channel)
 
 #Find ticket by team name  
