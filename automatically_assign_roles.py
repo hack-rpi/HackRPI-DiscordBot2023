@@ -1,9 +1,34 @@
 import discord
 from discord.ext import commands
 import os
-from profanity_filter import ProfanityFilter
 from dotenv import load_dotenv
 from decouple import config
+
+def contains_profanity(text):
+    """
+    Check if a string contains any word from the blacklist,
+    ignoring spaces in both the input text and the blacklist.
+
+    Parameters:
+    - text: The input text to check for profanity.
+    - blacklist: List of blacklisted words.
+
+    Returns:
+    - True if the text contains profanity, False otherwise.
+    """
+
+    with open('bad-words.txt', 'r') as file:
+        blacklist = [line.strip().lower() for line in file]
+
+    # Remove spaces from the input text
+    text_without_spaces = ''.join(text.split())
+
+    for word in blacklist:
+        # Remove spaces from each word in the blacklist
+        cleaned_word = ''.join(word.split())
+        if cleaned_word.lower() in text_without_spaces.lower():
+            return True
+    return False
 
 
 def alreadyOnTeam(member):
@@ -40,19 +65,20 @@ async def team(ctx, *members: discord.Member):
         user = ctx.author
     #get name from author
         try:
-            contains_profanity = True
             await user.send("Hello! What would you like to name your team?")
-            while(contains_profanity):
+            profain = True
+            while(profain):
                 def check(message):
                     return message.author == ctx.author and isinstance(message.channel, discord.DMChannel)
                 
                 response = await bot.wait_for('message', check=check, timeout=300.0)
-                message = response.content
-                contains_profanity = ProfanityFilter().is_profane(message)
-                if(contains_profanity):
-                    await user.send("Don't use profanity please... Try again")
-                    await user.send("What would you like your new name to be?")
+                name = response.content
 
+                profain = contains_profanity(name)
+                if(profain):
+                    await user.send("Banned Term Dectected: please try again.")
+                else:
+                    await user.send("Nice.")
         except:
             await user.send("You're too slow! This request timed out... Try again and be faster this time :)")
 
@@ -62,9 +88,9 @@ async def team(ctx, *members: discord.Member):
             await ctx.send('Sorry, you are already on a team.')
         else:
             #make the role
-            role = await ctx.guild.create_role(name=message, color=0x1bdf65)
-            role = discord.utils.get(ctx.guild.roles, name=message)
-            await ctx.send('Team Created with name ' + message)
+            role = await ctx.guild.create_role(name=name, color=0x1bdf65)
+            role = discord.utils.get(ctx.guild.roles, name=name)
+            await ctx.send('Team Created with name ' + name)
 
             await user.add_roles(role)
             
@@ -74,7 +100,7 @@ async def team(ctx, *members: discord.Member):
                 if(alreadyOnTeam(member) == True):
                     await ctx.send(f"{member.mention} is already on a team")
                 else:
-                    request_message = await member.send(f"{member.mention}, please confirm if you want to join team " + message + ". Respond with 'confirm' or 'deny'.")
+                    request_message = await member.send(f"{member.mention}, please confirm if you want to join team " + name + ". Respond with 'confirm' or 'deny'.")
 
                     def check(message):
                         return (
@@ -85,7 +111,7 @@ async def team(ctx, *members: discord.Member):
                     try:
                         response = await bot.wait_for("message", check=check, timeout=300.0)
                         if response.content.lower().strip() == "confirm" or response.content.lower() == "'confirm'":
-                            await ctx.send(f"{member.mention} has joined team " + message)
+                            await ctx.send(f"{member.mention} has joined team " + name)
                             await member.add_roles(role)
                         else:
                             await ctx.send(f"{member.mention} has denied the request.")
