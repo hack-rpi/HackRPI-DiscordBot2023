@@ -24,7 +24,7 @@ def check_profanity(sentence):
     sentence_set = set(words)
     return sentence_set.intersection(bad_words)
 
-token = config("DISCORD_BOT_TOKEN")
+# token = config("DISCORD_BOT_TOKEN")
 
 
 class TaskQueue:
@@ -35,6 +35,9 @@ class TaskQueue:
         self.task_assignments = {}  # A dictionary to store task assignments by task ID
 
     async def add_task(self, ctx, task_description):
+        if(task_description.strip() == ""):
+           await ctx.send(f"Empty task, please enter a task description.")
+           return
         channel_id = ctx.channel.id
         task_id = len(self.queues[channel_id]) + 1
         self.queues[channel_id].append(task_id)
@@ -44,6 +47,9 @@ class TaskQueue:
 
     async def assign_task(self, ctx, task_id, member: discord.Member):
         channel_id = ctx.channel.id
+        if(task_id.strip() == ""):
+           await ctx.send(f"Empty task ID, please enter a task ID.")
+           return
         if task_id not in self.queues[channel_id]:
             await ctx.send(f"Task {task_id} does not exist in this channel's queue.")
             return
@@ -56,6 +62,9 @@ class TaskQueue:
 
     async def complete_task(self, ctx, task_id):
         channel_id = ctx.channel.id
+        if(task_id.strip() == ""):
+            await ctx.send(f"Empty task ID, please enter a task ID.")
+            return
         if task_id not in self.queues[channel_id]:
             await ctx.send(f"Task {task_id} does not exist in this channel's queue.")
             return
@@ -77,7 +86,6 @@ if __name__ =='__main__':
     intents.message_content = True
     token = config("DISCORD_BOT_TOKEN")
     
-    bot = commands.Bot(command_prefix='!', intents=intents)
 
     # Initialize the bot with the specified intents
     #bot = discord.Client(intents=intents)
@@ -93,6 +101,7 @@ if __name__ =='__main__':
 
     @bot.command(name='add_task')
     async def add_task(ctx, *, task_description):
+        print("Test enters command")
         queue.add_task(ctx, task_description)
         print("task asddded")
 
