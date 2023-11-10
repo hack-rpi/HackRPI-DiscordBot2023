@@ -34,16 +34,15 @@ class TaskQueue:
         self.task_statuses = {}  # A dictionary to store task statuses by task ID
         self.task_assignments = {}  # A dictionary to store task assignments by task ID
 
-    async def add_task(self, ctx, task_description):
+    async def add_task(self, task_description):
         if(task_description.strip() == ""):
-           await ctx.send(f"Empty task, please enter a task description.")
-           return
+           return (f"Empty task, please enter a task description.")
         channel_id = ctx.channel.id
         task_id = len(self.queues[channel_id]) + 1
         self.queues[channel_id].append(task_id)
         self.task_statuses[task_id] = "Pending"
         self.task_assignments[task_id] = None
-        await ctx.send(f"Task {task_id}: {task_description} has been added to the queue.")
+        return (f"Task {task_id}: {task_description} has been added to the queue.")
 
     async def assign_task(self, ctx, task_id, member: discord.Member):
         channel_id = ctx.channel.id
@@ -88,8 +87,7 @@ if __name__ =='__main__':
     
 
     # Initialize the bot with the specified intents
-    #bot = discord.Client(intents=intents)
-
+    bot = discord.Client(intents=intents)
     captcha_generator = ImageCaptcha()
 
     captchas ={}
@@ -98,20 +96,6 @@ if __name__ =='__main__':
     @bot.event
     async def on_ready():
         print(f'Logged in as {bot.user.name}')
-
-    @bot.command(name='add_task')
-    async def add_task(ctx, *, task_description):
-        print("Test enters command")
-        queue.add_task(ctx, task_description)
-        print("task asddded")
-
-    @bot.command(name='assign_task')
-    async def assign_task(ctx, task_id, member: discord.Member):
-        queue.assign_task(ctx, int(task_id), member)
-
-    @bot.command(name='complete_task')
-    async def complete_task(ctx, task_id):
-        queue.complete_task(ctx, int(task_id))
 
     async def send_captcha(member):
         while True:  # Continues until correct CAPTCHA or timeout
@@ -171,6 +155,24 @@ if __name__ =='__main__':
 
     @bot.event
     async def on_message(message):
+        user = message.author
+        content = message.content.lower().strip()
+        if(content.startswith("$add_task")):
+            print(content)
+            task_description = content.split(" ")
+            await print(queue.add_task(task_description))
+
+        if(content.startswith("$assign_task")):
+            task_id = content.split(" ")
+            queue.assign_task(task_id)
+        
+        if(content.startswith("$complete_task")):
+
+            task_id = content.split(" ")
+            queue.complete_task(task_id)
+        
+    
+
         # Define a list of channel IDs where you want the function to work
         allowed_channel_ids = [1157414659587063898, 1154875483553529981]  # Replace with your desired channel IDs
 
@@ -178,7 +180,7 @@ if __name__ =='__main__':
         if message.channel.id not in allowed_channel_ids:
             return  # Exit the function if it's not in an allowed channel
         # Convert the message content to lowercase for case-insensitive matching
-        content = message.content.lower().strip()
+        
 
         # Check if any word in the list is in the message content
         if message.author == bot.user:
@@ -186,12 +188,9 @@ if __name__ =='__main__':
             
         if message.guild is None:
             return
-        
-        if content.startswith("!"):
-            await add_task("SDFDSf")
+  
         profanity = check_profanity(content)
         if(len(profanity) != 0 ) : 
-            user = message.author
             dm_channel = await user.create_dm()
             await message.delete()
             await dm_channel.send(
