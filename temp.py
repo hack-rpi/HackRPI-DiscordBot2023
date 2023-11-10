@@ -1,16 +1,18 @@
 from decouple import config
 import discord
 from discord.ext import commands
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Get the bot token from the environment variables
 intents = discord.Intents.default()
 intents.message_content = True
 intents.typing = False
 intents.presences = False
-token = config("DISCORD_BOT_TOKEN", default = 'MTE1NDQ2MTAyMzUyMTIxMDM4OA.GiCzKZ.gnM4Fq0P1CF4cLeF-EQ1AazikKi-w4QQ6URm8A')
-
+token = config("DISCORD_BOT_TOKEN")
 # Create a bot instance
-bot = commands.Bot(command_prefix='!',intents = intents)
+bot = commands.Bot(command_prefix='?', intents = intents)
 
 #creating a list of group name
 group_name_list = []
@@ -50,17 +52,24 @@ async def create_teams(ctx, num_players: int):
 
             await text_channel.send(f'Team-{i + 1} has been created, and members have been assigned.')
     else:
-        print('Sorry you have not right to create channels.')
+        print('Sorry you have no rights to create channels.')
 
 async def read_message(message):
     if message.author == bot.user:
         return
 
     words = "Successfully joined team"
+    words2 = "Team Created with "
 
-    if message.content.startwith(words):
+    if message.content.startwith(words2):
         await message.channel.send("Team name received.")
-        team_name = message.content[len("Team created with team name"):].strip()
+        team_name = message.content[len("Team Created with name"):].strip()
+        group_name_list.append(team_name)
+        await assign_groups(message)
+
+    elif message.content.include(words):
+        await message.channel.send("Team name received.")
+        team_name = message.cotent()
         group_name_list.append(team_name)
         await assign_groups(message)
 
