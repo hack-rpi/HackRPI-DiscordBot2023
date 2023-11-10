@@ -80,7 +80,7 @@ if __name__ =='__main__':
     bot = commands.Bot(command_prefix='!', intents=intents)
 
     # Initialize the bot with the specified intents
-    bot = discord.Client(intents=intents)
+    #bot = discord.Client(intents=intents)
 
     captcha_generator = ImageCaptcha()
 
@@ -94,6 +94,7 @@ if __name__ =='__main__':
     @bot.command(name='add_task')
     async def add_task(ctx, *, task_description):
         queue.add_task(ctx, task_description)
+        print("task asddded")
 
     @bot.command(name='assign_task')
     async def assign_task(ctx, task_id, member: discord.Member):
@@ -178,7 +179,7 @@ if __name__ =='__main__':
             return
         
         if content.startswith("!"):
-            return
+            await add_task("SDFDSf")
         profanity = check_profanity(content)
         if(len(profanity) != 0 ) : 
             user = message.author
