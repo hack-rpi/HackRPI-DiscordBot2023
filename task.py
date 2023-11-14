@@ -4,11 +4,16 @@ class Task():
         self.task = task
         self.team_in_charge = None
         self.channel = None
+        self.completed = False
 
     #Assign task a team
     def assign_team(self, team_in_charge):
         self.team_in_charge = team_in_charge
 
+    #Finished a task
+    def completed(self):
+        self.completed = True
+        
     #Assign task a channel
     def assign_channel(self, channel):
         self.channel = channel
