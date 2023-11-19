@@ -2,6 +2,7 @@ from decouple import config
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -69,7 +70,13 @@ async def read_message(message):
 
     elif message.content.include(words):
         await message.channel.send("Team name received.")
-        team_name = message.cotent()
+        bot_message = "@user Successfully joined team team_name"
+        pattern = r"@(\w+) Successfully joined team (\w+)"
+        match = re.search(pattern, bot_message)
+
+        if match:
+            user = match.group(1)
+            team_name = match.group(2)
         group_name_list.append(team_name)
         await assign_groups(message)
 
