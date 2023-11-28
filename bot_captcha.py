@@ -24,7 +24,7 @@ async def on_member_join(member):
     await send_captcha(member)
 
 async def send_captcha(member):
-    while True:  # Continues until correct CAPTCHA or timeout
+    while True:
         data = ''.join(random.choices('ABCDEFGHJKMNPQRSTUVWXYZ123456789', k=5))
         captcha_image = captcha_generator.generate(data)
         captcha_bytes = captcha_image.getvalue()
@@ -33,20 +33,21 @@ async def send_captcha(member):
         with open(temp_file, "wb") as f:
             f.write(captcha_bytes)
 
+        # Open the image using PIL, resize it, and save the resized image
+        with Image.open(temp_file) as image:
+            larger_image = image.resize((300, 100))  # Adjust the size as needed
+            larger_image.save(temp_file)
+
         captchas[member.id] = data
 
         dm_channel = await member.create_dm()
 
-        image = Image.open(temp_file)
-        image.close()
-
         file = discord.File(fp=temp_file, filename="captcha.png")
-
         embed = discord.Embed(title="Verification", description="Solve the CAPTCHA to get verified!")
         await dm_channel.send(embed=embed, file=file)
 
         fail_count = 0
-        timeout = 180 
+        timeout = 180
         start_time = asyncio.get_event_loop().time()
 
         while (asyncio.get_event_loop().time() - start_time) < timeout:
