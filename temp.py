@@ -25,7 +25,7 @@ async def on_ready():
 
 
 @bot.command()
-async def create_channel(ctx):
+async def create_channels(ctx):
     if ctx.author.guild_permissions.administrator:
         guild = ctx.guild
 
@@ -50,6 +50,26 @@ async def create_channel(ctx):
         await ctx.send("Channels have been created for all roles.")
     else:
         await ctx.send('Sorry, you do not have the required permissions to create channels.')
+
+
+@bot.command()
+async def delete_channels(ctx):
+    if ctx.author.guild_permissions.administrator:
+        guild = ctx.guild
+
+        # Loop through all channels in the server
+        for channel in guild.channels:
+            # Check if the channel is a text or voice channel created by the bot
+            if isinstance(channel, discord.TextChannel) or isinstance(channel, discord.VoiceChannel):
+                # Check if the channel name matches a role's name
+                if channel.name in [role.name for role in guild.roles]:
+                    # Delete the channel
+                    await channel.delete()
+
+        await ctx.send("Channels created for roles have been deleted.")
+    else:
+        await ctx.send('Sorry, you do not have the required permissions to delete channels.')
+
 
 async def read_message(message):
     if message.author == bot.user:
