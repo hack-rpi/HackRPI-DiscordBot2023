@@ -25,35 +25,31 @@ async def on_ready():
 
 
 @bot.command()
-async def create_teams(ctx, num_players: int):
+async def create_channel(ctx):
     if ctx.author.guild_permissions.administrator:
-        # Get the server
-        server = ctx.guild
+        guild = ctx.guild
 
-        # Get the list of members
-        members = server.members
+        # Loop through all roles in the server
+        for role in guild.roles:
+            # Create a new text channel for each role
+            text_channel = await guild.create_text_channel(name=role.name)
 
-        # Calculate the number of teams
-        num_teams = len(members) // num_players
-        await ctx.send(f'Successfully created {num_teams} teams!')
+            # Create a new voice channel for each role
+            voice_channel = await guild.create_voice_channel(name=role.name)
 
-        # Create teams
-        for i in range(num_teams):
-            # Create a text channel
-            text_channel = await server.create_text_channel(f'team-{i + 1}')
+            # Set channel overwrites to allow only the role to read messages
+            overwrites = {
+                guild.default_role: discord.PermissionOverwrite(read_messages=False),
+                role: discord.PermissionOverwrite(read_messages=True)
+            }
+            await text_channel.edit(overwrites=overwrites)
+            await voice_channel.edit(overwrites=overwrites)
 
-            # Create a voice channel
-            voice_channel = await server.create_voice_channel(f'team-{i + 1}')
+            await ctx.send(f'Created text and voice channels for role "{role.name}".')
 
-            # Move members to the team
-            for j in range(num_players):
-                member = members.pop()
-                await member.move_to(text_channel)
-                await member.move_to(voice_channel)
-
-            await text_channel.send(f'Team-{i + 1} has been created, and members have been assigned.')
+        await ctx.send("Channels have been created for all roles.")
     else:
-        print('Sorry you have no rights to create channels.')
+        await ctx.send('Sorry, you do not have the required permissions to create channels.')
 
 async def read_message(message):
     if message.author == bot.user:
@@ -62,7 +58,7 @@ async def read_message(message):
     words = "Successfully joined team"
     words2 = "Team Created with "
 
-    if message.content.startwith(words2):
+    if message.content.startswith(words2):
         await message.channel.send("Team name received.")
         team_name = message.content[len("Team Created with name"):].strip()
         group_name_list.append(team_name)
