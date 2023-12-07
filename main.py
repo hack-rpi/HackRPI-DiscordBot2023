@@ -152,17 +152,6 @@ if __name__ =='__main__':
 
             os.remove(temp_file)
 
-    @bot.command(name="list_tasks")
-    async def list_tasks(ctx):
-        # Command to list tasks in the queue
-        output_message = queue.list_tasks(ctx.channel.id)
-        await ctx.send(output_message)
-
-    @bot.command(name="clear_tasks")
-    async def clear_tasks(ctx):
-        # Command to clear all tasks in the queue
-        output_message = queue.clear_tasks(ctx.channel.id)
-        await ctx.send(output_message)
 
     @bot.event
     async def on_ready():
@@ -187,6 +176,15 @@ if __name__ =='__main__':
         if content.startswith("$complete_task"):
             task_id = content.split(" ")[1]
             output_message = queue.complete_task(message.channel.id, task_id)
+            await message.channel.send(output_message)
+        if content.startswith("$list_tasks"):
+            # Command to list tasks in the queue
+            output_message = queue.list_tasks(ctx.channel.id)
+            await message.channel.send(output_message)
+
+        if content.startswith("$clear_tasks"):
+            # Command to clear all tasks in the queue
+            output_message = queue.clear_tasks(ctx.channel.id)
             await message.channel.send(output_message)
 
             
