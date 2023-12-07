@@ -67,6 +67,18 @@ class TaskQueue:
         self.task_statuses[task_id] = "Completed"
         self.task_assignments[task_id] = None
         return f"Task {task_id} has been marked as completed by {assigned_member.display_name}."
+    def list_tasks(self, channel_id):
+        tasks = self.queues[channel_id]
+        if not tasks:
+            return "No tasks in the queue."
+        task_list = "\n".join([f"Task {task_id}: {self.task_statuses[task_id]}" for task_id in tasks])
+        return f"Tasks in the queue:\n{task_list}"
+
+    def clear_tasks(self, channel_id):
+        self.queues[channel_id] = []
+        self.task_statuses = {}
+        self.task_assignments = {}
+        return "Task queue cleared."
 
 
 if __name__ =='__main__':
@@ -140,7 +152,17 @@ if __name__ =='__main__':
 
             os.remove(temp_file)
 
+    @bot.command(name="list_tasks")
+    async def list_tasks(ctx):
+        # Command to list tasks in the queue
+        output_message = queue.list_tasks(ctx.channel.id)
+        await ctx.send(output_message)
 
+    @bot.command(name="clear_tasks")
+    async def clear_tasks(ctx):
+        # Command to clear all tasks in the queue
+        output_message = queue.clear_tasks(ctx.channel.id)
+        await ctx.send(output_message)
 
     @bot.event
     async def on_ready():
